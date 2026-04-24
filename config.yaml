@@ -1,0 +1,12 @@
+camera:
+  exposure_us: 30000
+  gamma: 100
+  contrast: 100
+  analog_gain: 16
+  ae_enabled: false
+  reverse_x: false
+  reverse_y: false
+detection:
+  backbone: resnet18
+  n_augmentations: 100
+  threshold: 90.0
