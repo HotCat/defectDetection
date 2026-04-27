@@ -80,41 +80,31 @@ class DefectDetector:
     def _compute_roi_mask(self, gray: np.ndarray) -> np.ndarray:
         """Compute ROI mask using Otsu thresholding + morphological cleanup."""
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-        otsu_thresh, mask = cv2.threshold(
-            blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU,
-        )
+        _, mask = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        # Product is at the center. Sample a patch and compare against the
-        # Otsu threshold to decide which side of the binary mask is the product.
-        # We want the center (product) to be 255 in the mask.
         h, w = gray.shape
-        r = min(h, w) // 10
-        ch, cw = h // 2, w // 2
-        center_patch = blurred[ch - r:ch + r, cw - r:cw + r]
-        if np.mean(center_patch) <= otsu_thresh:
+        center_val = gray[h // 2, w // 2]
+        mean_val = np.mean(gray)
+        if center_val < mean_val:
             mask = cv2.bitwise_not(mask)
 
-        # Large morphological close to bridge internal features (grooves, holes,
-        # stems) so the product becomes one connected region.
-        ksize = max(15, min(h, w) // 20)
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        mask = self._keep_center_component(mask, h, w)
+        mask = self._keep_largest_component(mask)
+
+        # Otsu picks background as foreground for this product — always invert.
+        mask = cv2.bitwise_not(mask)
         return mask
 
     @staticmethod
-    def _keep_center_component(mask: np.ndarray, h: int, w: int) -> np.ndarray:
-        """Keep only the connected component that contains the center pixel."""
+    def _keep_largest_component(mask: np.ndarray) -> np.ndarray:
+        """Keep only the largest connected component."""
         num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask)
         if num_labels <= 1:
             return mask
-        center_label = labels[h // 2, w // 2]
-        if center_label == 0:
-            # Center is background — fall back to largest component
-            largest = 1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])
-            return (labels == largest).astype(np.uint8) * 255
-        return (labels == center_label).astype(np.uint8) * 255
+        largest = 1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])
+        return (labels == largest).astype(np.uint8) * 255
 
     @staticmethod
     def _compute_roi_bbox(mask: np.ndarray) -> tuple[int, int, int, int]:
