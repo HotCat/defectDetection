@@ -217,6 +217,7 @@ class MainWindow(QMainWindow):
         self._display_pixmap: QPixmap | None = None
         self._active_worker: QThread | None = None
         self._auto_inspect: bool = False
+        self._inspect_pending: bool = False
         self._show_roi: bool = False
         self._last_inference_result: dict | None = None
 
@@ -281,6 +282,11 @@ class MainWindow(QMainWindow):
         self._auto_inspect_btn.setToolTip("Toggle continuous inspection on live frames")
         toolbar.addWidget(self._auto_inspect_btn)
 
+        self._inspect_btn = QPushButton("Inspect")
+        self._inspect_btn.setEnabled(False)
+        self._inspect_btn.setToolTip("Grab one frame and run PaDiM inspection (manual single-shot)")
+        toolbar.addWidget(self._inspect_btn)
+
         toolbar.addSeparator()
 
         self._roi_check = QCheckBox("Show ROI")
@@ -331,6 +337,7 @@ class MainWindow(QMainWindow):
         self._set_template_btn.clicked.connect(self._on_set_template)
         self._train_btn.clicked.connect(self._on_train)
         self._auto_inspect_btn.toggled.connect(self._on_auto_inspect_toggled)
+        self._inspect_btn.clicked.connect(self._on_inspect_clicked)
         self._roi_check.stateChanged.connect(self._on_roi_check_changed)
         self._settings_btn.clicked.connect(self._settings_window.show)
 
@@ -354,7 +361,10 @@ class MainWindow(QMainWindow):
     @Slot(np.ndarray)
     def _on_grab_frame(self, frame: np.ndarray):
         self._current_frame = self._ensure_bgr(frame)
-        if self._auto_inspect and self._detector.trained:
+        if self._inspect_pending:
+            self._inspect_pending = False
+            self._run_inference(self._current_frame)
+        elif self._auto_inspect and self._detector.trained:
             self._run_inference(self._current_frame)
         else:
             display = self._current_frame.copy()
@@ -421,6 +431,23 @@ class MainWindow(QMainWindow):
             return
         self._status_label.setText("Grabbing frame...")
         self._camera.software_trigger()
+
+    @Slot()
+    def _on_inspect_clicked(self):
+        """Grab one frame and run PaDiM inspection."""
+        if not self._detector.trained:
+            self._status_label.setText("Train model first")
+            return
+        if self._camera.is_open:
+            if self._current_mode != "inspection":
+                self._mode_combo.setCurrentIndex(1)
+            self._status_label.setText("Inspecting...")
+            self._inspect_pending = True
+            self._camera.software_trigger()
+        elif self._current_frame is not None:
+            self._run_inference(self._current_frame)
+        else:
+            self._status_label.setText("No frame available")
 
     @Slot()
     def _on_load_image(self):
@@ -495,6 +522,7 @@ class MainWindow(QMainWindow):
         self._train_btn.setText("Train")
         self._train_btn.setEnabled(True)
         self._auto_inspect_btn.setEnabled(True)
+        self._inspect_btn.setEnabled(True)
         self._status_label.setText("PaDiM trained — ready for inspection")
 
     @Slot(str)
