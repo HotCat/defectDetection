@@ -9,13 +9,9 @@ Modes:
 import sys
 import os
 
-# Force CPU if CUDA driver is incompatible — must precede any torch import
-try:
-    import torch as _torch
-    if _torch.cuda.is_available():
-        _torch.cuda.device_count()
-except (RuntimeError, AssertionError):
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# Hide CUDA to force CPU mode — your driver (535.x / CUDA 12.2) is too old for PyTorch 2.11 (needs CUDA 12.4+).
+# Remove this line after upgrading your NVIDIA driver to 550+ or installing PyTorch with CUDA 12.2 support.
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import yaml
 import cv2
@@ -338,30 +334,30 @@ class MainWindow(QMainWindow):
         self._roi_check.stateChanged.connect(self._on_roi_check_changed)
         self._settings_btn.clicked.connect(self._settings_window.show)
 
-        # Settings -> camera
-        self._settings_window.settings_changed.connect(self._camera.apply_settings)
+        # Settings -> camera + config save
+        self._settings_window.settings_changed.connect(self._on_camera_settings_changed)
 
     # ── Slots: camera frames ────────────────────────────────────────
 
     @Slot(np.ndarray)
     def _on_live_frame(self, frame: np.ndarray):
-        self._last_live_frame = frame.copy()
+        self._last_live_frame = self._ensure_bgr(frame)
 
         if self._auto_inspect and self._detector.trained:
-            self._run_inference(frame)
+            self._run_inference(self._last_live_frame)
         else:
-            display = frame.copy()
+            display = self._last_live_frame.copy()
             if self._show_roi and self._detector.has_template():
                 display = self._draw_roi_overlay(display)
             self._display_image(display)
 
     @Slot(np.ndarray)
     def _on_grab_frame(self, frame: np.ndarray):
-        self._current_frame = frame.copy()
+        self._current_frame = self._ensure_bgr(frame)
         if self._auto_inspect and self._detector.trained:
-            self._run_inference(frame)
+            self._run_inference(self._current_frame)
         else:
-            display = frame.copy()
+            display = self._current_frame.copy()
             if self._show_roi and self._detector.has_template():
                 display = self._draw_roi_overlay(display)
             self._display_image(display)
@@ -371,6 +367,19 @@ class MainWindow(QMainWindow):
     def _on_camera_error(self, msg: str):
         self._status_label.setText(f"Camera error: {msg}")
         self._stop_auto_inspect()
+
+    @Slot(CameraSettings)
+    def _on_camera_settings_changed(self, settings: CameraSettings):
+        self._camera.apply_settings(settings)
+        cam_cfg = self._config.setdefault("camera", {})
+        cam_cfg["exposure_us"] = settings.exposure_us
+        cam_cfg["gamma"] = settings.gamma
+        cam_cfg["contrast"] = settings.contrast
+        cam_cfg["analog_gain"] = settings.analog_gain
+        cam_cfg["ae_enabled"] = settings.ae_enabled
+        cam_cfg["reverse_x"] = settings.reverse_x
+        cam_cfg["reverse_y"] = settings.reverse_y
+        self._save_config()
 
     # ── Slots: mode and buttons ─────────────────────────────────────
 
@@ -626,6 +635,15 @@ class MainWindow(QMainWindow):
                     cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness_text)
 
     # ── Image display ───────────────────────────────────────────────
+
+    @staticmethod
+    def _ensure_bgr(frame: np.ndarray) -> np.ndarray:
+        """Convert grayscale/mono frame to BGR if needed."""
+        if frame.ndim == 2:
+            return cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        if frame.shape[2] == 1:
+            return cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        return frame.copy()
 
     def _display_image(self, image_bgr: np.ndarray):
         """Display a BGR numpy array in the central QLabel."""

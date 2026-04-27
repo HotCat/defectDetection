@@ -1,9 +1,9 @@
 camera:
-  exposure_us: 30000
-  gamma: 100
-  contrast: 100
-  analog_gain: 16
   ae_enabled: false
+  analog_gain: 4
+  contrast: 116
+  exposure_us: 5187
+  gamma: 90
   reverse_x: false
   reverse_y: false
 detection:

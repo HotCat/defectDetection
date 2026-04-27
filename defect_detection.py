@@ -14,15 +14,9 @@ Workflow:
 import os
 import shutil
 
-# Force CPU if CUDA driver is incompatible — must be set before torch is imported
-_cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-if _cuda_visible is None or _cuda_visible != "":
-    try:
-        import torch as _torch
-        if _torch.cuda.is_available():
-            _torch.cuda.device_count()
-    except (RuntimeError, AssertionError):
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# Hide CUDA to force CPU mode — driver (535.x / CUDA 12.2) too old for PyTorch 2.11 (needs CUDA 12.4+).
+# Remove this line after upgrading driver to 550+ or installing PyTorch built for CUDA 12.2.
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import torch
 from torchvision import transforms
@@ -63,6 +57,11 @@ class DefectDetector:
 
     def set_template(self, image_bgr: np.ndarray) -> np.ndarray:
         """Set the template image and compute ROI mask. Returns the ROI mask."""
+        if image_bgr.ndim == 2:
+            image_bgr = cv2.cvtColor(image_bgr, cv2.COLOR_GRAY2BGR)
+        elif image_bgr.shape[2] == 1:
+            image_bgr = cv2.cvtColor(image_bgr, cv2.COLOR_GRAY2BGR)
+
         self.template_bgr = image_bgr.copy()
         self.template_gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
         self.roi_mask = self._compute_roi_mask(self.template_gray)
