@@ -2,11 +2,11 @@ camera:
   ae_enabled: false
   analog_gain: 1
   contrast: 128
-  exposure_us: 17469
-  gamma: 73
+  exposure_us: 16499
+  gamma: 100
   reverse_x: false
   reverse_y: false
 detection:
   backbone: resnet18
   n_augmentations: 100
-  threshold: 90.0
+  threshold: 60.0
