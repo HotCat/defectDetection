@@ -40,13 +40,29 @@ jobs:
 
       - name: Bundle VC++ runtime DLLs
         run: |
-          $vcDir = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\VC\Redist\MSVC"
-          $latest = Get-ChildItem $vcDir -Directory | Sort-Object Name -Descending | Select-Object -First 1
-          $dllDir = Join-Path $latest.FullName "x64\Microsoft.VC143.CRT"
-          Write-Host "Copying VC++ CRT from: $dllDir"
-          Copy-Item "$dllDir\vcruntime140.dll" dist\DefectDetection\
-          Copy-Item "$dllDir\vcruntime140_1.dll" dist\DefectDetection\
-          Copy-Item "$dllDir\msvcp140.dll" dist\DefectDetection\
+          Write-Host "Searching for VC++ CRT DLLs..."
+          $dlls = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio" -Recurse -Filter "vcruntime140.dll" -ErrorAction SilentlyContinue
+          if (-Not $dlls) {
+            $dlls = Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter "vcruntime140.dll" -ErrorAction SilentlyContinue
+          }
+          if (-Not $dlls) {
+            Write-Host "Searching Windows System32..."
+            $sysDll = "C:\Windows\System32\vcruntime140.dll"
+            if (Test-Path $sysDll) {
+              Copy-Item $sysDll dist\DefectDetection\
+              Copy-Item "C:\Windows\System32\vcruntime140_1.dll" dist\DefectDetection\
+              Copy-Item "C:\Windows\System32\msvcp140.dll" dist\DefectDetection\
+              Write-Host "Copied from System32"
+            } else {
+              Write-Warning "No VC++ runtime DLLs found, skipping"
+            }
+          } else {
+            $crtDir = $dlls[0].DirectoryName
+            Write-Host "Found CRT at: $crtDir"
+            Copy-Item "$crtDir\vcruntime140.dll" dist\DefectDetection\
+            Copy-Item "$crtDir\vcruntime140_1.dll" dist\DefectDetection\ -ErrorAction SilentlyContinue
+            Copy-Item "$crtDir\msvcp140.dll" dist\DefectDetection\ -ErrorAction SilentlyContinue
+          }
         shell: pwsh
 
       - name: Upload artifact
