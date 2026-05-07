@@ -40,15 +40,13 @@ jobs:
 
       - name: Bundle VC++ runtime DLLs
         run: |
-          $vcDir = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC"
-          if (-Not (Test-Path $vcDir)) {
-            $vcDir = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC"
-          }
-          $dllDir = Get-ChildItem "$vcDir\*\x64\Microsoft.VC143.CRT" -ErrorAction Stop | Select-Object -Last 1
-          Write-Host "Copying VC++ CRT from: $($dllDir.FullName)"
-          Copy-Item "$($dllDir.FullName)\vcruntime140.dll" dist\DefectDetection\
-          Copy-Item "$($dllDir.FullName)\vcruntime140_1.dll" dist\DefectDetection\
-          Copy-Item "$($dllDir.FullName)\msvcp140.dll" dist\DefectDetection\
+          $vcDir = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\VC\Redist\MSVC"
+          $latest = Get-ChildItem $vcDir -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          $dllDir = Join-Path $latest.FullName "x64\Microsoft.VC143.CRT"
+          Write-Host "Copying VC++ CRT from: $dllDir"
+          Copy-Item "$dllDir\vcruntime140.dll" dist\DefectDetection\
+          Copy-Item "$dllDir\vcruntime140_1.dll" dist\DefectDetection\
+          Copy-Item "$dllDir\msvcp140.dll" dist\DefectDetection\
         shell: pwsh
 
       - name: Upload artifact
