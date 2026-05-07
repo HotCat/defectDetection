@@ -16,8 +16,10 @@ from typing import Optional
 
 import numpy as np
 
-# Add driver directory to path for mvsdk import (not needed when frozen)
-if not getattr(sys, 'frozen', False):
+# Add driver directory to path for mvsdk import
+if getattr(sys, 'frozen', False):
+    sys.path.insert(0, os.path.join(sys._MEIPASS, 'driver'))
+else:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'driver'))
 import mvsdk
 
