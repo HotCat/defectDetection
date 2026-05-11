@@ -2,8 +2,15 @@
 import sys
 import os
 from PySide6.QtWidgets import QApplication
+from PyInstaller.utils.hooks import collect_data_files
 
 block_cipher = None
+
+_data_files = (
+    collect_data_files('lightning_fabric')
+    + collect_data_files('lightning')
+    + collect_data_files('jsonargparse')
+)
 
 a = Analysis(
     ['app.py'],
@@ -12,7 +19,7 @@ a = Analysis(
     datas=[
         ('config.yaml', '.'),
         ('driver', 'driver'),
-    ],
+    ] + _data_files,
     hiddenimports=[
         'mvsdk',
         'defect_detection',
@@ -43,6 +50,7 @@ a = Analysis(
         'lightning',
         'lightning.pytorch',
         'lightning.pytorch.cli',
+        'lightning_fabric',
         'jsonargparse',
         'torchmetrics',
     ],
