@@ -47,7 +47,7 @@ class CameraSettingsWindow(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Camera Settings")
+        self.setWindowTitle("相机设置")
         self.setWindowFlags(Qt.Tool | Qt.WindowStaysOnTopHint)
         self.setMinimumWidth(320)
         self._block_signals = False
@@ -56,7 +56,7 @@ class CameraSettingsWindow(QWidget):
     def _build_ui(self):
         layout = QFormLayout(self)
 
-        self._ae_check = QCheckBox("Auto Exposure")
+        self._ae_check = QCheckBox("自动曝光")
         self._ae_check.stateChanged.connect(self._on_setting_changed)
         layout.addRow(self._ae_check)
 
@@ -72,7 +72,7 @@ class CameraSettingsWindow(QWidget):
         exp_row = QHBoxLayout()
         exp_row.addWidget(self._exposure_slider, 1)
         exp_row.addWidget(self._exposure_spin)
-        layout.addRow("Exposure:", exp_row)
+        layout.addRow("曝光时间：", exp_row)
 
         self._gamma_slider = QSlider(Qt.Horizontal)
         self._gamma_spin = QSpinBox()
@@ -82,7 +82,7 @@ class CameraSettingsWindow(QWidget):
         gamma_row = QHBoxLayout()
         gamma_row.addWidget(self._gamma_slider, 1)
         gamma_row.addWidget(self._gamma_spin)
-        layout.addRow("Gamma:", gamma_row)
+        layout.addRow("伽马：", gamma_row)
 
         self._contrast_slider = QSlider(Qt.Horizontal)
         self._contrast_spin = QSpinBox()
@@ -92,7 +92,7 @@ class CameraSettingsWindow(QWidget):
         contrast_row = QHBoxLayout()
         contrast_row.addWidget(self._contrast_slider, 1)
         contrast_row.addWidget(self._contrast_spin)
-        layout.addRow("Contrast:", contrast_row)
+        layout.addRow("对比度：", contrast_row)
 
         self._gain_slider = QSlider(Qt.Horizontal)
         self._gain_spin = QSpinBox()
@@ -102,13 +102,13 @@ class CameraSettingsWindow(QWidget):
         gain_row = QHBoxLayout()
         gain_row.addWidget(self._gain_slider, 1)
         gain_row.addWidget(self._gain_spin)
-        layout.addRow("Analog Gain:", gain_row)
+        layout.addRow("模拟增益：", gain_row)
 
-        self._reverse_x_check = QCheckBox("Reverse X (Horizontal Mirror)")
+        self._reverse_x_check = QCheckBox("水平翻转")
         self._reverse_x_check.stateChanged.connect(self._on_setting_changed)
         layout.addRow(self._reverse_x_check)
 
-        self._reverse_y_check = QCheckBox("Reverse Y (Vertical Mirror)")
+        self._reverse_y_check = QCheckBox("垂直翻转")
         self._reverse_y_check.stateChanged.connect(self._on_setting_changed)
         layout.addRow(self._reverse_y_check)
 
@@ -227,7 +227,7 @@ class MainWindow(QMainWindow):
     # ── UI construction ─────────────────────────────────────────────
 
     def _build_ui(self):
-        self.setWindowTitle("Structural Defect Detector")
+        self.setWindowTitle("结构缺陷检测")
         self.setMinimumSize(800, 600)
 
         # Central image display
@@ -244,7 +244,7 @@ class MainWindow(QMainWindow):
         self.addToolBar(toolbar)
 
         self._mode_combo = QComboBox()
-        self._mode_combo.addItems(["Live View", "Inspection"])
+        self._mode_combo.addItems(["实时预览", "检测模式"])
         self._mode_combo.setMinimumWidth(140)
         toolbar.addWidget(self._mode_combo)
 
@@ -253,50 +253,50 @@ class MainWindow(QMainWindow):
 
         toolbar.addSeparator()
 
-        self._grab_btn = QPushButton("Grab")
+        self._grab_btn = QPushButton("抓帧")
         self._grab_btn.setEnabled(False)
         toolbar.addWidget(self._grab_btn)
 
-        self._load_btn = QPushButton("Load Image")
+        self._load_btn = QPushButton("加载图片")
         toolbar.addWidget(self._load_btn)
 
-        self._save_btn = QPushButton("Save")
+        self._save_btn = QPushButton("保存")
         self._save_btn.setEnabled(False)
         toolbar.addWidget(self._save_btn)
 
         toolbar.addSeparator()
 
-        self._set_template_btn = QPushButton("Set Template")
+        self._set_template_btn = QPushButton("设置模板")
         self._set_template_btn.setEnabled(False)
-        self._set_template_btn.setToolTip("Use current frame as the perfect-product template")
+        self._set_template_btn.setToolTip("将当前画面设为合格品模板")
         toolbar.addWidget(self._set_template_btn)
 
-        self._train_btn = QPushButton("Train")
+        self._train_btn = QPushButton("训练")
         self._train_btn.setEnabled(False)
-        self._train_btn.setToolTip("Augment template and train PaDiM model")
+        self._train_btn.setToolTip("数据增强并训练 PaDiM 模型")
         toolbar.addWidget(self._train_btn)
 
-        self._auto_inspect_btn = QPushButton("Auto Inspect")
+        self._auto_inspect_btn = QPushButton("自动检测")
         self._auto_inspect_btn.setCheckable(True)
         self._auto_inspect_btn.setEnabled(False)
-        self._auto_inspect_btn.setToolTip("Toggle continuous inspection on live frames")
+        self._auto_inspect_btn.setToolTip("对实时画面持续进行缺陷检测")
         toolbar.addWidget(self._auto_inspect_btn)
 
-        self._inspect_btn = QPushButton("Inspect")
+        self._inspect_btn = QPushButton("单次检测")
         self._inspect_btn.setEnabled(False)
-        self._inspect_btn.setToolTip("Grab one frame and run PaDiM inspection (manual single-shot)")
+        self._inspect_btn.setToolTip("抓取一帧并执行 PaDiM 缺陷检测")
         toolbar.addWidget(self._inspect_btn)
 
         toolbar.addSeparator()
 
-        self._roi_check = QCheckBox("Show ROI")
+        self._roi_check = QCheckBox("显示 ROI")
         self._roi_check.setEnabled(False)
         toolbar.addWidget(self._roi_check)
 
         toolbar.addSeparator()
 
         # Threshold slider
-        threshold_label = QLabel(" Threshold:")
+        threshold_label = QLabel(" 阈值：")
         toolbar.addWidget(threshold_label)
 
         self._threshold_spin = QDoubleSpinBox()
@@ -304,17 +304,17 @@ class MainWindow(QMainWindow):
         self._threshold_spin.setSingleStep(5.0)
         self._threshold_spin.setDecimals(1)
         self._threshold_spin.setValue(self._config.get("detection", {}).get("threshold", 90.0))
-        self._threshold_spin.setToolTip("Anomaly score threshold for defect detection")
+        self._threshold_spin.setToolTip("缺陷检测异常分数阈值")
         self._threshold_spin.setFixedWidth(80)
         toolbar.addWidget(self._threshold_spin)
 
         toolbar.addSeparator()
 
-        self._settings_btn = QPushButton("Settings")
+        self._settings_btn = QPushButton("设置")
         toolbar.addWidget(self._settings_btn)
 
         # Status bar
-        self._status_label = QLabel("No camera connected")
+        self._status_label = QLabel("未连接相机")
         self.statusBar().addWidget(self._status_label, 1)
 
         # Floating windows
@@ -371,11 +371,11 @@ class MainWindow(QMainWindow):
             if self._show_roi and self._detector.has_template():
                 display = self._draw_roi_overlay(display)
             self._display_image(display)
-            self._status_label.setText("Frame captured")
+            self._status_label.setText("已抓帧")
 
     @Slot(str)
     def _on_camera_error(self, msg: str):
-        self._status_label.setText(f"Camera error: {msg}")
+        self._status_label.setText(f"相机错误：{msg}")
         self._stop_auto_inspect()
 
     @Slot(CameraSettings)
@@ -429,36 +429,36 @@ class MainWindow(QMainWindow):
     def _on_grab_clicked(self):
         if self._auto_inspect:
             return
-        self._status_label.setText("Grabbing frame...")
+        self._status_label.setText("正在抓帧...")
         self._camera.software_trigger()
 
     @Slot()
     def _on_inspect_clicked(self):
         """Grab one frame and run PaDiM inspection."""
         if not self._detector.trained:
-            self._status_label.setText("Train model first")
+            self._status_label.setText("请先训练模型")
             return
         if self._camera.is_open:
             if self._current_mode != "inspection":
                 self._mode_combo.setCurrentIndex(1)
-            self._status_label.setText("Inspecting...")
+            self._status_label.setText("正在检测...")
             self._inspect_pending = True
             self._camera.software_trigger()
         elif self._current_frame is not None:
             self._run_inference(self._current_frame)
         else:
-            self._status_label.setText("No frame available")
+            self._status_label.setText("无可用画面")
 
     @Slot()
     def _on_load_image(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, "Load Image", "", "Images (*.png *.jpg *.bmp *.tif)"
+            self, "加载图片", "", "图片 (*.png *.jpg *.bmp *.tif)"
         )
         if not path:
             return
         img = cv2.imread(path)
         if img is None:
-            self._status_label.setText(f"Failed to load: {path}")
+            self._status_label.setText(f"加载失败：{path}")
             return
         self._current_frame = img
         display = img.copy()
@@ -466,14 +466,14 @@ class MainWindow(QMainWindow):
             display = self._draw_roi_overlay(display)
         self._display_image(display)
         self._set_template_btn.setEnabled(True)
-        self._status_label.setText(f"Loaded: {os.path.basename(path)}")
+        self._status_label.setText(f"已加载：{os.path.basename(path)}")
 
     @Slot()
     def _on_save(self):
         if self._current_frame is None:
             return
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save Image", "result.png", "Images (*.png *.jpg *.bmp)"
+            self, "保存图片", "result.png", "图片 (*.png *.jpg *.bmp)"
         )
         if not path:
             return
@@ -481,14 +481,14 @@ class MainWindow(QMainWindow):
             cv2.imwrite(path, self._last_inference_result["overlay"])
         else:
             cv2.imwrite(path, self._current_frame)
-        self._status_label.setText(f"Saved to {path}")
+        self._status_label.setText(f"已保存至 {path}")
 
     # ── Template & training ─────────────────────────────────────────
 
     @Slot()
     def _on_set_template(self):
         if self._current_frame is None:
-            self._status_label.setText("No frame available — Grab first")
+            self._status_label.setText("无可用画面，请先抓帧")
             return
 
         roi_mask = self._detector.set_template(self._current_frame)
@@ -498,18 +498,18 @@ class MainWindow(QMainWindow):
         display = self._draw_roi_overlay(self._current_frame.copy())
         self._display_image(display)
         self._status_label.setText(
-            f"Template set | ROI bbox: {self._detector.roi_bbox}"
+            f"模板已设置 | ROI 区域：{self._detector.roi_bbox}"
         )
 
     @Slot()
     def _on_train(self):
         if not self._detector.has_template():
-            self._status_label.setText("Set a template first")
+            self._status_label.setText("请先设置模板")
             return
 
         self._train_btn.setEnabled(False)
-        self._train_btn.setText("Training...")
-        self._status_label.setText("Augmenting template & training PaDiM...")
+        self._train_btn.setText("训练中...")
+        self._status_label.setText("正在增强模板并训练 PaDiM 模型...")
 
         self._active_worker = _TrainWorker(self._detector)
         self._active_worker.done.connect(self._on_train_done)
@@ -519,18 +519,18 @@ class MainWindow(QMainWindow):
     @Slot()
     def _on_train_done(self):
         self._active_worker = None
-        self._train_btn.setText("Train")
+        self._train_btn.setText("训练")
         self._train_btn.setEnabled(True)
         self._auto_inspect_btn.setEnabled(True)
         self._inspect_btn.setEnabled(True)
-        self._status_label.setText("PaDiM trained — ready for inspection")
+        self._status_label.setText("PaDiM 训练完成，可以开始检测")
 
     @Slot(str)
     def _on_worker_error(self, msg: str):
         self._active_worker = None
-        self._train_btn.setText("Train")
+        self._train_btn.setText("训练")
         self._train_btn.setEnabled(True)
-        self._status_label.setText(f"Error: {msg}")
+        self._status_label.setText(f"错误：{msg}")
 
     # ── Inference ───────────────────────────────────────────────────
 
@@ -557,10 +557,10 @@ class MainWindow(QMainWindow):
         self._draw_pass_fail(overlay, is_anomalous)
         self._display_image(overlay)
 
-        status = "DEFECT" if is_anomalous else "PASS"
+        status = "缺陷" if is_anomalous else "合格"
         color = "red" if is_anomalous else "green"
         self._status_label.setText(
-            f"{status} | Score: {score:.2f} | Threshold: {self._threshold_spin.value():.1f}"
+            f"{status} | 分数：{score:.2f} | 阈值：{self._threshold_spin.value():.1f}"
         )
 
         # Auto-inspect: trigger next grab
@@ -574,7 +574,7 @@ class MainWindow(QMainWindow):
     @Slot(str)
     def _on_inference_error(self, msg: str):
         self._active_worker = None
-        self._status_label.setText(f"Inference error: {msg}")
+        self._status_label.setText(f"检测错误：{msg}")
         if self._auto_inspect:
             # Try to continue
             try:
@@ -594,11 +594,11 @@ class MainWindow(QMainWindow):
     def _start_auto_inspect(self):
         if not self._detector.trained:
             self._auto_inspect_btn.setChecked(False)
-            self._status_label.setText("Train model first")
+            self._status_label.setText("请先训练模型")
             return
 
         self._auto_inspect = True
-        self._auto_inspect_btn.setText("Stop Inspect")
+        self._auto_inspect_btn.setText("停止检测")
 
         if self._current_mode != "inspection":
             self._mode_combo.setCurrentIndex(1)
@@ -609,12 +609,12 @@ class MainWindow(QMainWindow):
         elif self._current_frame is not None:
             self._run_inference(self._current_frame)
 
-        self._status_label.setText("Auto inspecting...")
+        self._status_label.setText("自动检测中...")
 
     def _stop_auto_inspect(self):
         self._auto_inspect = False
         self._auto_inspect_btn.setChecked(False)
-        self._auto_inspect_btn.setText("Auto Inspect")
+        self._auto_inspect_btn.setText("自动检测")
 
     # ── ROI overlay ─────────────────────────────────────────────────
 
@@ -655,7 +655,7 @@ class MainWindow(QMainWindow):
         color = (0, 0, 255) if is_anomalous else (0, 200, 0)
         cv2.rectangle(image_bgr, (0, 0), (w - 1, h - 1), color, thickness)
 
-        label = "DEFECT" if is_anomalous else "PASS"
+        label = "缺陷" if is_anomalous else "合格"
         font_scale = max(0.8, h / 400)
         thickness_text = max(2, int(font_scale * 2))
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness_text)
@@ -749,13 +749,13 @@ def main():
 
             camera.set_live_mode()
             window._status_label.setText(
-                f"Camera connected: {devices[0]['name']} ({devices[0]['sn']})"
+                f"相机已连接：{devices[0]['name']} ({devices[0]['sn']})"
             )
         except Exception as e:
-            window._status_label.setText(f"Camera init failed: {e}")
+            window._status_label.setText(f"相机初始化失败：{e}")
     else:
         window._status_label.setText(
-            "No camera found — use Load Image to test with files"
+            "未找到相机，可加载图片进行测试"
         )
 
     window.show()
