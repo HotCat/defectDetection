@@ -16,6 +16,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 import yaml
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QComboBox,
@@ -656,11 +657,52 @@ class MainWindow(QMainWindow):
         cv2.rectangle(image_bgr, (0, 0), (w - 1, h - 1), color, thickness)
 
         label = "缺陷" if is_anomalous else "合格"
-        font_scale = max(0.8, h / 400)
-        thickness_text = max(2, int(font_scale * 2))
-        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness_text)
-        cv2.putText(image_bgr, label, (w - tw - 15, th + 15),
-                    cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness_text)
+        font_size = int(max(24, h / 12))
+
+        # Convert BGR to RGB for PIL
+        pil_img = Image.fromarray(cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB))
+        draw = ImageDraw.Draw(pil_img)
+
+        # Try to load a Chinese-capable font, fallback to default
+        font = None
+        font_paths = [
+            # Windows
+            "C:/Windows/Fonts/msyh.ttc",
+            "C:/Windows/Fonts/msyhbd.ttc",
+            "C:/Windows/Fonts/simhei.ttf",
+            "C:/Windows/Fonts/simsun.ttc",
+            # Linux
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+            "/usr/share/fonts/wqy-zenhei/wqy-zenhei.ttc",
+        ]
+        for fp in font_paths:
+            try:
+                font = ImageFont.truetype(fp, font_size)
+                break
+            except Exception:
+                continue
+        if font is None:
+            try:
+                font = ImageFont.load_default()
+                if hasattr(font, "size"):
+                    font = ImageFont.load_default(size=font_size)
+            except Exception:
+                font = ImageFont.load_default()
+
+        # Get text bounding box
+        bbox = draw.textbbox((0, 0), label, font=font)
+        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+
+        # Draw text with PIL (RGB color)
+        rgb_color = (color[2], color[1], color[0])
+        draw.text((w - tw - 15, th + 15), label, font=font, fill=rgb_color)
+
+        # Convert back to BGR
+        result = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+        image_bgr[:] = result
 
     # ── Image display ───────────────────────────────────────────────
 
